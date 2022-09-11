@@ -9,11 +9,47 @@
 
     <!--https://github.com/microsoft/microsoft-ui-xaml/blob/main/dev/CommonStyles/Button_themeresources.xaml-->
 
-    <Border BorderThickness="2" CornerRadius="15" BorderBrush="Red" Background="Transparent">
-        <!--<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">-->
+    <!--<Border BorderThickness="2" CornerRadius="15" BorderBrush="Red" Background="Transparent">-->
+        <Border BorderThickness="2" BorderBrush="Red" Background="Transparent">
+       
+            <!--<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">-->
     <!--<StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Green">-->
+  
         <StackPanel Orientation="Vertical" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Transparent">
-           
+
+            <!--<Border>
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="Yellow" Offset="0.0" />
+                        <GradientStop Color="Red" Offset="0.25" />
+                        <GradientStop Color="Blue" Offset="0.50" />
+                        <GradientStop Color="LimeGreen" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Grid x:Name="AppTitleBar" Height="32" Background="Transparent">
+                --><!--<Grid.Background>
+                    <ImageBrush Stretch="Uniform" ImageSource="Assets/butterfly.png" AlignmentY="Top" AlignmentX="Left"/>
+                </Grid.Background>--><!--
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition x:Name="LeftPaddingColumn" Width="0"/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition x:Name="RightPaddingColumn" Width="0"/>
+                </Grid.ColumnDefinitions>
+
+                <Image Grid.Row="1" Grid.Column="1" Source="Assets/Butterfly.png"
+                       HorizontalAlignment="Left"
+                       Width="30" Height="30" Margin="12,0"/>
+                <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource CaptionTextBlockStyle}" Margin="54,-4" VerticalAlignment="Center" HorizontalAlignment="Left"
+                           FontSize="18" Text="Custom TitleBar" Foreground="Navy" FontWeight="Normal" >
+                </TextBlock>
+
+            </Grid>
+            </Border>-->
             <TextBlock Text="Right-click to exit" Margin="5,5,5,5" HorizontalAlignment="Center" Foreground="Yellow"/>
             <Button x:Name="myButton" Click="myButton_Click" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10, 140, 10, 10" Background="Blue">
             Click Me

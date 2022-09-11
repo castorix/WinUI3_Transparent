@@ -107,6 +107,9 @@ namespace WinUI3_Transparent
         public const int WS_EX_COMPOSITED = 0x02000000;
         public const int WS_EX_NOACTIVATE = 0x08000000;
 
+        [DllImport("User32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        public static extern bool MoveWindow(IntPtr hWnd, int x, int y, int cx, int cy, bool repaint);
+
         public const uint LWA_COLORKEY = 0x00000001;
         public const uint LWA_ALPHA = 0x00000002;
 
@@ -172,8 +175,7 @@ namespace WinUI3_Transparent
         [DllImport("User32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern bool GetCursorPos(out Windows.Graphics.PointInt32 lpPoint);
 
-
-
+     
         IntPtr hWnd = IntPtr.Zero;
         IntPtr hWndChild = IntPtr.Zero;
         private Microsoft.UI.Windowing.AppWindow _apw;
@@ -195,9 +197,13 @@ namespace WinUI3_Transparent
             _presenter = _apw.Presenter as Microsoft.UI.Windowing.OverlappedPresenter;
             _presenter.IsResizable = false;
             //_presenter.IsMinimizable = false;
-            _presenter.SetBorderAndTitleBar(false, false);           
+            _presenter.SetBorderAndTitleBar(false, false);
 
-            //hWndChild = FindWindowEx(hWnd, IntPtr.Zero, "Microsoft.UI.Content.ContentWindowSiteBridge", null);
+            //ExtendsContentIntoTitleBar = true;
+            //SetTitleBar(AppTitleBar);
+
+            // WS_EX_NOREDIRECTIONBITMAP;
+            hWndChild = FindWindowEx(hWnd, IntPtr.Zero, "Microsoft.UI.Content.ContentWindowSiteBridge", null);
             //ShowWindow(hWndChild, SW_HIDE);
 
             SubClassDelegate = new SUBCLASSPROC(WindowSubClass);
@@ -213,6 +219,7 @@ namespace WinUI3_Transparent
                 //bool bReturn = SetLayeredWindowAttributes(hWnd, (uint)MakeArgb(255, 255, 0, 0), 128, LWA_ALPHA | LWA_COLORKEY);
                 bool bReturn = SetLayeredWindowAttributes(hWnd, (uint)System.Drawing.ColorTranslator.ToWin32(System.Drawing.Color.Magenta), 255, LWA_COLORKEY);
 
+
                 //bool bReturn = SetLayeredWindowAttributes(hWnd, (uint)System.Drawing.ColorTranslator.ToWin32(System.Drawing.Color.Black), 255, LWA_COLORKEY);
 
                 //bool bReturn = SetLayeredWindowAttributes(hWnd, (uint)System.Drawing.ColorTranslator.ToWin32(System.Drawing.Color.Black), 128, LWA_ALPHA | LWA_COLORKEY);
@@ -220,6 +227,7 @@ namespace WinUI3_Transparent
 
                 //bool bReturn = SetLayeredWindowAttributes(hWnd, (uint)MakeArgb(255, 136, 23, 152), 255, LWA_COLORKEY);
             }
+
 
             UIElement root = (UIElement)this.Content;
             root.PointerMoved += Root_PointerMoved;
@@ -234,6 +242,7 @@ namespace WinUI3_Transparent
         {
             //nXWindow = _apw.Position.X;
             //nYWindow = _apw.Position.Y;
+            ((UIElement)sender).ReleasePointerCaptures();
             bMoving = false;
         }
 
@@ -242,6 +251,7 @@ namespace WinUI3_Transparent
             var properties = e.GetCurrentPoint((UIElement)sender).Properties;
             if (properties.IsLeftButtonPressed)
             {
+                ((UIElement)sender).CapturePointer(e.Pointer);
                 nXWindow = _apw.Position.X;
                 nYWindow = _apw.Position.Y;
                 Windows.Graphics.PointInt32 pt;
@@ -353,10 +363,11 @@ namespace WinUI3_Transparent
             switch (uMsg)
             {
                 case WM_ERASEBKGND:
-                    {
+                    { 
                         RECT rect;
                         GetClientRect(hWnd, out rect);
-                        IntPtr hBrush = CreateSolidBrush(System.Drawing.ColorTranslator.ToWin32(System.Drawing.Color.Magenta));
+                        //int nRet = ExcludeClipRect(wParam, 0, 0, rect.right, 35);
+                        IntPtr hBrush = CreateSolidBrush(System.Drawing.ColorTranslator.ToWin32(System.Drawing.Color.Magenta));                    
                         //IntPtr hBrush = CreateSolidBrush((int)MakeArgb(255, 255, 0, 0));                       
                         //IntPtr hBrush = CreateSolidBrush(System.Drawing.ColorTranslator.ToWin32(System.Drawing.Color.FromArgb(255, 32, 32, 32)));
                         FillRect(wParam, ref rect, hBrush);
