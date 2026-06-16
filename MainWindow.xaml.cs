@@ -14,6 +14,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using WinRT;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -78,6 +79,8 @@ namespace WinUI3_Transparent
 
         [DllImport("Gdi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         public static extern int ExcludeClipRect(IntPtr hdc, int left, int top, int right, int bottom);
+
+        public const int WS_DLGFRAME = 0x00400000;
 
         public const int WS_EX_DLGMODALFRAME = 0x00000001;
         public const int WS_EX_NOPARENTNOTIFY = 0x00000004;
@@ -153,6 +156,29 @@ namespace WinUI3_Transparent
         [DllImport("User32.dll", EntryPoint = "GetWindowLongPtr", CharSet = CharSet.Auto)]
         public static extern long GetWindowLongPtr64(IntPtr hWnd, int nIndex);
 
+        public static IntPtr SetClassLong(IntPtr hWnd, int nIndex, IntPtr dwNewLong)
+        {
+            if (IntPtr.Size == 4)
+            {
+                return SetClassLongPtr32(hWnd, nIndex, dwNewLong);
+            }
+            return SetClassLongPtr64(hWnd, nIndex, dwNewLong);
+        }
+
+        public const int GCLP_MENUNAME = (-8);
+        public const int GCLP_HBRBACKGROUND = (-10);
+        public const int GCLP_HCURSOR = (-12);
+        public const int GCLP_HICON = (-14);
+        public const int GCLP_HMODULE = (-16);
+        public const int GCLP_WNDPROC = (-24);
+        public const int GCLP_HICONSM = (-34);
+
+        [DllImport("user32.dll", EntryPoint = "SetClassLong")]
+        public static extern IntPtr SetClassLongPtr32(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+
+        [DllImport("user32.dll", EntryPoint = "SetClassLongPtr")]
+        public static extern IntPtr SetClassLongPtr64(IntPtr hWnd, int nIndex, IntPtr dwNewLong);      
+
         [DllImport("User32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern bool DestroyWindow(IntPtr hWnd);
 
@@ -175,64 +201,294 @@ namespace WinUI3_Transparent
         [DllImport("User32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern bool GetCursorPos(out Windows.Graphics.PointInt32 lpPoint);
 
-     
-        IntPtr hWnd = IntPtr.Zero;
+        public const int SWP_NOSIZE = 0x0001;
+        public const int SWP_NOMOVE = 0x0002;
+        public const int SWP_NOZORDER = 0x0004;
+        public const int SWP_NOREDRAW = 0x0008;
+        public const int SWP_NOACTIVATE = 0x0010;
+        public const int SWP_FRAMECHANGED = 0x0020;  /* The frame changed: send WM_NCCALCSIZE */
+        public const int SWP_SHOWWINDOW = 0x0040;
+        public const int SWP_HIDEWINDOW = 0x0080;
+        public const int SWP_NOCOPYBITS = 0x0100;
+        public const int SWP_NOOWNERZORDER = 0x0200;  /* Don't do owner Z ordering */
+        public const int SWP_NOSENDCHANGING = 0x0400;  /* Don't send WM_WINDOWPOSCHANGING */
+        public const int SWP_DRAWFRAME = SWP_FRAMECHANGED;
+        public const int SWP_NOREPOSITION = SWP_NOOWNERZORDER;
+        public const int SWP_DEFERERASE = 0x2000;
+        public const int SWP_ASYNCWINDOWPOS = 0x4000;
+
+        [DllImport("User32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+
+        [DllImport("Gdi32.dll", SetLastError = true)]
+        public static extern IntPtr GetStockObject(int stockObject);
+
+        public const int WHITE_BRUSH = 0;
+        public const int LTGRAY_BRUSH = 1;
+        public const int GRAY_BRUSH = 2;
+        public const int DKGRAY_BRUSH = 3;
+        public const int BLACK_BRUSH = 4;
+        public const int NULL_BRUSH = 5;
+        public const int HOLLOW_BRUSH = NULL_BRUSH;
+
+        public enum HRESULT : int
+        {
+            S_OK = 0,
+            S_FALSE = 1,
+            E_NOTIMPL = unchecked((int)0x80004001),
+            E_NOINTERFACE = unchecked((int)0x80004002),
+            E_POINTER = unchecked((int)0x80004003),
+            E_FAIL = unchecked((int)0x80004005),
+            E_UNEXPECTED = unchecked((int)0x8000FFFF),
+            E_OUTOFMEMORY = unchecked((int)0x8007000E),
+        }
+
+        [DllImport("Dwmapi.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern HRESULT DwmEnableBlurBehindWindow(IntPtr hWnd, ref DWM_BLURBEHIND pBlurBehind);
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct DWM_BLURBEHIND
+        {
+            public uint dwFlags;
+            public bool fEnable;
+            public IntPtr hRgnBlur;
+            public bool fTransitionOnMaximized;
+        }
+
+        public const int DWM_BB_ENABLE = 0x00000001;
+        public const int DWM_BB_BLURREGION = 0x00000002;
+        public const int DWM_BB_TRANSITIONONMAXIMIZED = 0x00000004;
+
+        [DllImport("Gdi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern IntPtr CreateRectRgn(int x1, int y1, int x2, int y2);
+
+        public enum DWMWINDOWATTRIBUTE
+        {
+            DWMWA_NCRENDERING_ENABLED = 1,
+            DWMWA_NCRENDERING_POLICY,
+            DWMWA_TRANSITIONS_FORCEDISABLED,
+            DWMWA_ALLOW_NCPAINT,
+            DWMWA_CAPTION_BUTTON_BOUNDS,
+            DWMWA_NONCLIENT_RTL_LAYOUT,
+            DWMWA_FORCE_ICONIC_REPRESENTATION,
+            DWMWA_FLIP3D_POLICY,
+            DWMWA_EXTENDED_FRAME_BOUNDS,
+            DWMWA_HAS_ICONIC_BITMAP,
+            DWMWA_DISALLOW_PEEK,
+            DWMWA_EXCLUDED_FROM_PEEK,
+            DWMWA_CLOAK,
+            DWMWA_CLOAKED,
+            DWMWA_FREEZE_REPRESENTATION,
+            DWMWA_PASSIVE_UPDATE_MODE,
+            DWMWA_USE_HOSTBACKDROPBRUSH,
+            DWMWA_USE_IMMERSIVE_DARK_MODE = 20,
+            DWMWA_WINDOW_CORNER_PREFERENCE = 33,
+            DWMWA_BORDER_COLOR,
+            DWMWA_CAPTION_COLOR,
+            DWMWA_TEXT_COLOR,
+            DWMWA_VISIBLE_FRAME_BORDER_THICKNESS,
+            DWMWA_SYSTEMBACKDROP_TYPE,
+            DWMWA_LAST
+        };
+
+        public enum DWMNCRENDERINGPOLICY
+        {
+            DWMNCRP_USEWINDOWSTYLE, // Enable/disable non-client rendering based on window style
+            DWMNCRP_DISABLED,       // Disabled non-client rendering; window style is ignored
+            DWMNCRP_ENABLED,        // Enabled non-client rendering; window style is ignored
+            DWMNCRP_LAST
+        };
+
+        public enum DWM_WINDOW_CORNER_PREFERENCE
+        {
+            DWMWCP_DEFAULT = 0,
+            DWMWCP_DONOTROUND = 1,
+            DWMWCP_ROUND = 2,
+            DWMWCP_ROUNDSMALL = 3
+        }
+
+        [DllImport("Dwmapi.dll", SetLastError = true, CharSet = CharSet.Unicode, PreserveSig = false)]
+        public static extern HRESULT DwmSetWindowAttribute(IntPtr hwnd, DWMWINDOWATTRIBUTE dwAttribute, ref DWM_WINDOW_CORNER_PREFERENCE pvAttribute, uint cbAttribute);
+
+        [DllImport("Dwmapi.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern HRESULT DwmSetWindowAttribute(IntPtr hwnd, int dwAttribute, ref int pvAttribute, int cbAttribute);
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct MARGINS
+        {
+            public int cxLeftWidth;
+            public int cxRightWidth;
+            public int cyTopHeight;
+            public int cyBottomHeight;
+        }
+
+        [DllImport("dwmapi.dll", PreserveSig = true)]
+        public static extern int DwmExtendFrameIntoClientArea(IntPtr hWnd, ref MARGINS pMarInset);
+
+
+        [DllImport("CoreMessaging.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern HRESULT CreateDispatcherQueueController(DispatcherQueueOptions options, /*PDISPATCHERQUEUECONTROLLER**/ [MarshalAs(UnmanagedType.IUnknown)] out object dispatcherQueueController);
+
+        public enum DISPATCHERQUEUE_THREAD_TYPE
+        {
+            DQTYPE_THREAD_DEDICATED = 1,
+            DQTYPE_THREAD_CURRENT = 2,
+        };
+
+        public enum DISPATCHERQUEUE_THREAD_APARTMENTTYPE
+        {
+            DQTAT_COM_NONE = 0,
+            DQTAT_COM_ASTA = 1,
+            DQTAT_COM_STA = 2
+        };
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct DispatcherQueueOptions
+        {
+            public uint dwSize;
+            public DISPATCHERQUEUE_THREAD_TYPE threadType;
+            public DISPATCHERQUEUE_THREAD_APARTMENTTYPE apartmentType;
+        }
+
+
+        IntPtr hWndMain = IntPtr.Zero;
         IntPtr hWndChild = IntPtr.Zero;
         private Microsoft.UI.Windowing.AppWindow _apw;
         private Microsoft.UI.Windowing.OverlappedPresenter _presenter;
 
         private SUBCLASSPROC SubClassDelegate;
 
+        private Microsoft.UI.Composition.ICompositionSupportsSystemBackdrop? m_pSupportsSystemBackdrop = null;
+        private static Windows.UI.Composition.Compositor? m_WindowsCompositor;
+        private static Windows.System.DispatcherQueue? m_DispatcherQueue;
+
         public MainWindow()
         {
             this.InitializeComponent();
 
-            hWnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
-            Microsoft.UI.WindowId myWndId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hWnd);
-            _apw = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(myWndId);
+            hWndMain = WinRT.Interop.WindowNative.GetWindowHandle(this);
+            Microsoft.UI.WindowId myWndId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hWndMain);
 
+            //long nExStyle = GetWindowLong(hWndMain, GWL_EXSTYLE);
+            //long nRet = SetWindowLong(hWndMain, GWL_EXSTYLE, (nint)(nExStyle & ~WS_EX_WINDOWEDGE));
+            //SetWindowPos(hWndMain, IntPtr.Zero, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+            //nExStyle = GetWindowLong(hWndMain, GWL_EXSTYLE);
+
+            long nStyle = GetWindowLong(hWndMain, GWL_STYLE);
+            long nRet = SetWindowLong(hWndMain, GWL_STYLE, (nint)(nStyle & ~WS_DLGFRAME));
+            nStyle = GetWindowLong(hWndMain, GWL_STYLE);
+
+            _apw = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(myWndId);
             _apw.Resize(new Windows.Graphics.SizeInt32(360, 360));
             _apw.Move(new Windows.Graphics.PointInt32(600, 400));
 
             _presenter = _apw.Presenter as Microsoft.UI.Windowing.OverlappedPresenter;
             _presenter.IsResizable = false;
             //_presenter.IsMinimizable = false;
-            _presenter.SetBorderAndTitleBar(false, false);
+            _presenter.SetBorderAndTitleBar(false, false);          
+
+            //DWM_BLURBEHIND bb = new DWM_BLURBEHIND()
+            //{
+            //    dwFlags = DWM_BB_ENABLE | DWM_BB_BLURREGION,
+            //    fEnable = true,
+            //    //hRgnBlur = IntPtr.Zero,                
+            //    //hRgnBlur = CreateRectRgn(-2, -1, 0, 0)
+            //    //hRgnBlur = CreateRectRgn(0, 0, 90, 90),
+            //};
+            //HRESULT hr = DwmEnableBlurBehindWindow(hWndMain, ref bb);
+
+            // Windows 11
+            int nValue = (int)DWM_WINDOW_CORNER_PREFERENCE.DWMWCP_DEFAULT;
+            HRESULT hr = DwmSetWindowAttribute(hWndMain, (int)DWMWINDOWATTRIBUTE.DWMWA_WINDOW_CORNER_PREFERENCE, ref nValue, Marshal.SizeOf(typeof(int)));
 
             //ExtendsContentIntoTitleBar = true;
             //SetTitleBar(AppTitleBar);
 
             // WS_EX_NOREDIRECTIONBITMAP;
-            hWndChild = FindWindowEx(hWnd, IntPtr.Zero, "Microsoft.UI.Content.ContentWindowSiteBridge", null);
+            //hWndChild = FindWindowEx(hWndMain, IntPtr.Zero, "Microsoft.UI.Content.ContentWindowSiteBridge", null);
+            hWndChild = FindWindowEx(hWndMain, IntPtr.Zero, "Microsoft.UI.Content.DesktopChildSiteBridge", null);
+
             //ShowWindow(hWndChild, SW_HIDE);
 
-            SubClassDelegate = new SUBCLASSPROC(WindowSubClass);
-            bool bRet = SetWindowSubclass(hWnd, SubClassDelegate, 0, 0);
+            //SetClassLong(hWndMain, GCLP_HBRBACKGROUND, GetStockObject(NULL_BRUSH));
+            //SetClassLong(hWndChild, GCLP_HBRBACKGROUND, GetStockObject(NULL_BRUSH));
 
-            long nExStyle = GetWindowLong(hWnd, GWL_EXSTYLE);
+            SubClassDelegate = new SUBCLASSPROC(WindowSubClass);
+            //bool bRet = SetWindowSubclass(hWndMain, SubClassDelegate, 0, 0);
+            //bool bRet2 = SetWindowSubclass(hWndChild, SubClassDelegate, 0, 0);
+
+            //SetWindowLong(hWndMain, GWL_EXSTYLE, (IntPtr)(GetWindowLong(hWndMain, GWL_EXSTYLE) & ~WS_EX_WINDOWEDGE));
+
+            // Can be commented...
+            long nExStyle = GetWindowLong(hWndMain, GWL_EXSTYLE);
             if ((nExStyle & WS_EX_LAYERED) == 0)
             {
-                SetWindowLong(hWnd, GWL_EXSTYLE, (IntPtr)(nExStyle | WS_EX_LAYERED));
-                //nExStyle = GetWindowLong(hWnd, GWL_EXSTYLE);
-                //SetWindowLong(hWnd, GWL_EXSTYLE, (IntPtr)(nExStyle | WS_EX_TRANSPARENT));
+                SetWindowLong(hWndMain, GWL_EXSTYLE, (IntPtr)(nExStyle | WS_EX_LAYERED));
+                //nExStyle = GetWindowLong(hWndMain, GWL_EXSTYLE);
+                //SetWindowLong(hWndMain, GWL_EXSTYLE, (IntPtr)(nExStyle | WS_EX_TRANSPARENT));
 
-                //bool bReturn = SetLayeredWindowAttributes(hWnd, (uint)MakeArgb(255, 255, 0, 0), 128, LWA_ALPHA | LWA_COLORKEY);
-                bool bReturn = SetLayeredWindowAttributes(hWnd, (uint)System.Drawing.ColorTranslator.ToWin32(System.Drawing.Color.Magenta), 255, LWA_COLORKEY);
+                //bool bReturn = SetLayeredWindowAttributes(hWndMain, (uint)MakeArgb(255, 255, 0, 0), 128, LWA_ALPHA | LWA_COLORKEY);
+                bool bReturn = SetLayeredWindowAttributes(hWndMain, (uint)System.Drawing.ColorTranslator.ToWin32(System.Drawing.Color.Magenta), 255, LWA_COLORKEY);
 
+                //bool bReturn = SetLayeredWindowAttributes(hWndMain, (uint)System.Drawing.ColorTranslator.ToWin32(System.Drawing.Color.Black), 255, LWA_COLORKEY);
 
-                //bool bReturn = SetLayeredWindowAttributes(hWnd, (uint)System.Drawing.ColorTranslator.ToWin32(System.Drawing.Color.Black), 255, LWA_COLORKEY);
+                //bool bReturn = SetLayeredWindowAttributes(hWndMain, (uint)System.Drawing.ColorTranslator.ToWin32(System.Drawing.Color.Black), 128, LWA_ALPHA | LWA_COLORKEY);
+                ////bool bReturn = SetLayeredWindowAttributes(hWndMain, (uint)0, 128, LWA_ALPHA | LWA_COLORKEY);
 
-                //bool bReturn = SetLayeredWindowAttributes(hWnd, (uint)System.Drawing.ColorTranslator.ToWin32(System.Drawing.Color.Black), 128, LWA_ALPHA | LWA_COLORKEY);
-                ////bool bReturn = SetLayeredWindowAttributes(hWnd, (uint)0, 128, LWA_ALPHA | LWA_COLORKEY);
+                //bool bReturn = SetLayeredWindowAttributes(hWndMain, (uint)MakeArgb(255, 136, 23, 152), 255, LWA_COLORKEY);
 
-                //bool bReturn = SetLayeredWindowAttributes(hWnd, (uint)MakeArgb(255, 136, 23, 152), 255, LWA_COLORKEY);
+                bool bRet = SetWindowSubclass(hWndMain, SubClassDelegate, 0, 0);
+
             }
-
 
             UIElement root = (UIElement)this.Content;
             root.PointerMoved += Root_PointerMoved;
             root.PointerPressed += Root_PointerPressed;
             root.PointerReleased += Root_PointerReleased;
+
+            InitializeWindowsComposition(hWndMain);
+
+            m_pSupportsSystemBackdrop = this.As<Microsoft.UI.Composition.ICompositionSupportsSystemBackdrop>();
+            if (m_WindowsCompositor != null && m_pSupportsSystemBackdrop != null)
+            {
+                //var pBackdropBrush = m_WindowsCompositor.CreateBackdropBrush();
+                //var p = pBackdropBrush.Properties;
+                //p.InsertColor("TintColor", Microsoft.UI.Colors.Aqua);               
+                //m_pSupportsSystemBackdrop.SystemBackdrop = pBackdropBrush;
+
+                //var pTransparentBrush = m_WindowsCompositor.CreateColorBrush(Windows.UI.Color.FromArgb(100, 255, 0, 0));
+                var pTransparentBrush = m_WindowsCompositor.CreateColorBrush(Windows.UI.Color.FromArgb(0, 0, 0, 0));
+                m_pSupportsSystemBackdrop.SystemBackdrop = pTransparentBrush;
+
+            }
+            var margins = new MARGINS { cxLeftWidth = -1 };
+            DwmExtendFrameIntoClientArea(hWndMain, ref margins);
+
+        }
+
+        private void InitializeWindowsComposition(IntPtr hWnd)
+        {
+            HRESULT hr = HRESULT.S_OK;
+
+            // -2147417842 0x8001010e RPC_E_WRONG_THREAD if DesktopAcrylicBackdrop in XAML
+            //hr = CreateDispatcherQueueController(options, out object dqc);
+
+            m_DispatcherQueue = Windows.System.DispatcherQueue.GetForCurrentThread();
+            if (m_DispatcherQueue == null)
+            {
+                DispatcherQueueOptions options = new DispatcherQueueOptions
+                {
+                    threadType = DISPATCHERQUEUE_THREAD_TYPE.DQTYPE_THREAD_CURRENT,
+                    apartmentType = DISPATCHERQUEUE_THREAD_APARTMENTTYPE.DQTAT_COM_STA,
+                    dwSize = (uint)Marshal.SizeOf(typeof(DispatcherQueueOptions))
+                };
+                hr = CreateDispatcherQueueController(options, out object dqc);
+            }
+
+            if (hr == HRESULT.S_OK && m_WindowsCompositor == null)
+            {
+                m_WindowsCompositor = new Windows.UI.Composition.Compositor();              
+            }
         }
 
         private int nX = 0, nY = 0, nXWindow = 0, nYWindow = 0;
@@ -351,7 +607,7 @@ namespace WinUI3_Transparent
             set
             {
                 _Opacity = value;
-                bool bReturn = SetLayeredWindowAttributes(hWnd, (uint)System.Drawing.ColorTranslator.ToWin32(System.Drawing.Color.Magenta), (byte)(255 * _Opacity / 100), LWA_ALPHA | LWA_COLORKEY);
+                bool bReturn = SetLayeredWindowAttributes(hWndMain, (uint)System.Drawing.ColorTranslator.ToWin32(System.Drawing.Color.Magenta), (byte)(255 * _Opacity / 100), LWA_ALPHA | LWA_COLORKEY);
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Opacity)));
             }
         }
